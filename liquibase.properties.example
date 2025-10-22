@@ -23,25 +23,27 @@
 changeLogFile=db.changelog-master.xml
 
 #### Enter the Target database 'url' information  ####
-liquibase.command.url=jdbc:postgresql://34.28.74.92:5432/postgres
+# IMPORTANT: Replace with your actual database connection details
+# Do NOT commit real credentials to version control
+liquibase.command.url=jdbc:postgresql://YOUR_DB_HOST:5432/YOUR_DB_NAME
 
 # Enter the username for your Target database.
-liquibase.command.username: postgres
+liquibase.command.username: YOUR_DB_USERNAME
 
 # Enter the password for your Target database.
-liquibase.command.password: Ntersan@1016
+liquibase.command.password: YOUR_DB_PASSWORD
 
 #### Enter the Source Database 'referenceUrl' information ####
 ## The source database is the baseline or reference against which your target database is compared for diff/diffchangelog commands.
 
 # Enter URL for the source database
-liquibase.command.referenceUrl: jdbc:postgresql://34.28.74.92:5432/postgres
+liquibase.command.referenceUrl: jdbc:postgresql://YOUR_REF_DB_HOST:5432/YOUR_REF_DB_NAME
 
 # Enter the username for your source database
-liquibase.command.referenceUsername: postgres
+liquibase.command.referenceUsername: YOUR_REF_DB_USERNAME
 
 # Enter the password for your source database
-liquibase.command.referencePassword: Ntersan@1016
+liquibase.command.referencePassword: YOUR_REF_DB_PASSWORD
 
 # Logging Configuration
 # logLevel controls the amount of logging information generated. If not set, the default logLevel is INFO.
