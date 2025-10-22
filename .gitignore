@@ -1,0 +1,50 @@
+# Liquibase
+liquibase.properties
+*.log
+liquibase-*.log
+
+# Database drivers
+*.jar
+
+# Environment and sensitive files
+.env
+*.env
+.env.local
+*.pem
+*.key
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+target/
+build/
+dist/
+*.class
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# Node modules (if any)
+node_modules/
+
+# Python (if any)
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+ENV/

@@ -1,0 +1,81 @@
+# Pre-commit hooks configuration
+# Install: pip install pre-commit
+# Setup: pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Security: Prevent committing secrets
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package.lock.json
+
+  # Security: Check for common security issues
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: detect-private-key
+      - id: check-case-conflict
+      - id: mixed-line-ending
+
+  # Prevent committing sensitive files
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-yaml
+        files: \.(yml|yaml)$
+      - id: check-json
+        files: \.json$
+      - id: check-xml
+        files: \.xml$
+
+  # Custom hook to prevent committing liquibase.properties
+  - repo: local
+    hooks:
+      - id: block-liquibase-properties
+        name: Block liquibase.properties
+        entry: liquibase.properties should not be committed (use liquibase.properties.example)
+        language: fail
+        files: ^liquibase\.properties$
+
+      - id: block-env-files
+        name: Block .env files
+        entry: .env files should not be committed (use .env.example)
+        language: fail
+        files: ^\.env$
+
+      - id: check-sql-syntax
+        name: Basic SQL syntax check
+        entry: bash -c 'grep -i "DROP DATABASE\|TRUNCATE TABLE\|DELETE FROM.*WHERE.*1.*=.*1" "$@" && exit 1 || exit 0'
+        language: system
+        files: \.sql$
+        types: [file]
+
+  # SQL formatting (optional)
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 2.3.5
+    hooks:
+      - id: sqlfluff-lint
+        args: ['--dialect', 'postgres']
+        files: \.sql$
+      - id: sqlfluff-fix
+        args: ['--dialect', 'postgres']
+        files: \.sql$
+
+# Configuration for specific tools
+exclude: |
+  (?x)^(
+    .*\.jar|
+    .*\.log|
+    \.git/.*|
+    node_modules/.*|
+    venv/.*
+  )$

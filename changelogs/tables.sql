@@ -28,8 +28,11 @@ ALTER TABLE person ADD COLUMN IF NOT EXISTS country varchar(2);
 --rollback ALTER TABLE person DROP COLUMN IF EXISTS country;
 
 --changeset ${author}:${changesetId}-4 labels:label4 context:context4 runOnChange:true
---comment: Add dynamic country_india column if not exists
+--comment: Add country_india5 column to person if not exists
 ALTER TABLE person ADD COLUMN IF NOT EXISTS country_india5 varchar(2);
 --rollback ALTER TABLE person DROP COLUMN IF EXISTS country_india5;
 
+--changeset ${author}:${changesetId}-5 labels:label5 context:context5 runOnChange:true
+--comment: Add country_india6 column to person if not exists
 ALTER TABLE person ADD COLUMN IF NOT EXISTS country_india6 varchar(2);
+--rollback ALTER TABLE person DROP COLUMN IF EXISTS country_india6;

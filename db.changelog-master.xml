@@ -7,6 +7,8 @@
 
 
 
+    <!-- Include changesets in order of execution -->
+    <!-- Tables should be created before views and procedures -->
     <include file="changelogs/tables.sql" relativeToChangelogFile="true"/>
     <include file="changelogs/views.sql" relativeToChangelogFile="true"/>
     <include file="changelogs/procedures.sql" relativeToChangelogFile="true"/>
