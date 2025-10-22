@@ -1,0 +1,211 @@
+stages:
+  - deploy
+  - rollback
+
+variables:
+  DRIVER_JAR: "$CI_PROJECT_DIR/postgresql-42.7.8.jar"
+  LIQUIBASE_PROPERTIES: "$CI_PROJECT_DIR/liquibase.properties"
+
+before_script:
+  # Sanitize author for Liquibase changesets
+  - |
+    AUTHOR_SANITIZED=$(echo "$CI_COMMIT_AUTHOR" | sed 's/<.*>//' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | tr ' :/' '_')
+    export AUTHOR_SANITIZED
+  # Create liquibase.properties with parameters
+  - |
+    printf '%s\n' \
+      "changeLogFile: db.changelog-master.xml" \
+      "url: jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME" \
+      "username: $DB_USER" \
+      "password: $DB_PASS" \
+      "parameter.author: $AUTHOR_SANITIZED" \
+      "parameter.changesetId: $CI_COMMIT_SHA" \
+    > "$LIQUIBASE_PROPERTIES"
+
+deploy_database:
+  stage: deploy
+  image: liquibase/liquibase:latest
+  script:
+    # Verify JDBC driver exists
+    - |
+      if [ ! -f "$DRIVER_JAR" ]; then
+        echo "ERROR: JDBC driver not found at $DRIVER_JAR"
+        echo "Please ensure postgresql-42.6.0.jar is in the root directory"
+        exit 1
+      fi
+    # Tag current DB state (no parameters needed for tag)
+    - |
+      liquibase \
+        --classpath="$DRIVER_JAR" \
+        --defaultsFile="$LIQUIBASE_PROPERTIES" \
+        tag "$CI_PIPELINE_ID"
+    # Apply new changes (parameters are in properties file)
+    - |
+      liquibase \
+        --classpath="$DRIVER_JAR" \
+        --defaultsFile="$LIQUIBASE_PROPERTIES" \
+        update
+  
+
+rollback_database:
+  stage: rollback
+  image: liquibase/liquibase:latest
+  when: manual
+  script:
+    # Verify JDBC driver exists
+    - |
+      if [ ! -f "$DRIVER_JAR" ]; then
+        echo "ERROR: JDBC driver not found at $DRIVER_JAR"
+        echo "Please ensure postgresql-42.6.0.jar is in the root directory"
+        exit 1
+      fi
+    # Rollback to pipeline tag (parameters are in properties file)
+    - |
+      liquibase \
+        --classpath="$DRIVER_JAR" \
+        --defaultsFile="$LIQUIBASE_PROPERTIES" \
+        rollback "$CI_PIPELINE_ID"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# stages:
+#   - deploy
+#   - rollback
+
+# variables:
+#   POSTGRES_JDBC_VERSION: "42.6.0"
+#   DRIVER_JAR: "$CI_PROJECT_DIR/postgresql-${POSTGRES_JDBC_VERSION}.jar"
+#   LIQUIBASE_PROPERTIES: "$CI_PROJECT_DIR/liquibase.properties"
+
+# before_script:
+#   # Download JDBC driver if not exists
+#   - |
+#     if [ ! -f "$DRIVER_JAR" ]; then
+#       echo "Downloading Postgres JDBC driver $POSTGRES_JDBC_VERSION..."
+#       if command -v curl >/dev/null 2>&1; then
+#         curl -L -o "$DRIVER_JAR" "https://repo1.maven.org/maven2/org/postgresql/postgresql/${POSTGRES_JDBC_VERSION}/postgresql-${POSTGRES_JDBC_VERSION}.jar"
+#       else
+#         wget -O "$DRIVER_JAR" "https://repo1.maven.org/maven2/org/postgresql/postgresql/${POSTGRES_JDBC_VERSION}/postgresql-${POSTGRES_JDBC_VERSION}.jar"
+#       fi
+#     fi
+#   # Sanitize author for Liquibase changesets
+#   - |
+#     AUTHOR_SANITIZED=$(echo "$CI_COMMIT_AUTHOR" | sed 's/<.*>//' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | tr ' :/' '_')
+#     export AUTHOR_SANITIZED
+#   # Create liquibase.properties
+#   - |
+#     printf '%s\n' \
+#       "changeLogFile: db.changelog-master.xml" \
+#       "url: jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME" \
+#       "username: $DB_USER" \
+#       "password: $DB_PASS" \
+#     > "$LIQUIBASE_PROPERTIES"
+
+# deploy_database:
+#   stage: deploy
+#   image: liquibase/liquibase:latest
+#   script:
+#     # Tag current DB state
+#     - |
+#       liquibase \
+#         --classpath="$DRIVER_JAR" \
+#         --defaultsFile="$LIQUIBASE_PROPERTIES" \
+#         -Dauthor="$AUTHOR_SANITIZED" \
+#         -DchangesetId="$CI_COMMIT_SHA" \
+#         tag "$CI_PIPELINE_ID"
+#     # Apply new changes
+#     - |
+#       liquibase \
+#         --classpath="$DRIVER_JAR" \
+#         --defaultsFile="$LIQUIBASE_PROPERTIES" \
+#         -Dauthor="$AUTHOR_SANITIZED" \
+#         -DchangesetId="$CI_COMMIT_SHA" \
+#         update
+
+# rollback_database:
+#   stage: rollback
+#   image: liquibase/liquibase:latest
+#   when: manual
+#   script:
+#     # Rollback to pipeline tag
+#     - |
+#       liquibase \
+#         --classpath="$DRIVER_JAR" \
+#         --defaultsFile="$LIQUIBASE_PROPERTIES" \
+#         -Dauthor="$AUTHOR_SANITIZED" \
+#         -DchangesetId="$CI_COMMIT_SHA" \
+#         rollback "$CI_PIPELINE_ID"
+
+
+
+
+
+
+
+# stages:
+#   - deploy
+#   - rollback
+
+# # ---------------- Deploy Database ----------------
+# deploy_database:
+#   stage: deploy
+#   image: liquibase/liquibase:latest
+#   script:
+#     # Tag current DB state using pipeline ID
+#     - liquibase tag "$CI_PIPELINE_ID" \
+#         --changeLogFile=db.changelog-master.xml \
+#         --url=jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME \
+#         --username=$DB_USER \
+#         --password=$DB_PASS
+
+#     # Run update with dynamic author/changeset ID
+#     - liquibase update \
+#         --changeLogFile=db.changelog-master.xml \
+#         --url=jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME \
+#         --username=$DB_USER \
+#         --password=$DB_PASS \
+#         --property=author="$CI_COMMIT_AUTHOR" \
+#         --property=changesetId="$CI_COMMIT_SHA"
+
+# # ---------------- Rollback Database ----------------
+# rollback_database:
+#   stage: rollback
+#   image: liquibase/liquibase:latest
+#   when: manual   # Manual trigger in GitLab UI
+#   script:
+#     # Rollback to the tagged state of this pipeline
+#     - liquibase rollback "$CI_PIPELINE_ID" \
+#         --changeLogFile=db.changelog-master.xml \
+#         --url=jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME \
+#         --username=$DB_USER \
+#         --password=$DB_PASS
