@@ -66,6 +66,56 @@ rollback_database:
         --defaultsFile="$LIQUIBASE_PROPERTIES" \
         rollback "$CI_PIPELINE_ID"
 
+rollback_by_tag_or_label:
+  stage: rollback
+  image: liquibase/liquibase:latest
+  when: manual
+  variables:
+    ROLLBACK_TAG: ""        # User can set this to rollback to a specific tag
+    ROLLBACK_LABEL: ""      # User can set this to filter changesets by label
+  script:
+    # Verify JDBC driver exists
+    - |
+      if [ ! -f "$DRIVER_JAR" ]; then
+        echo "ERROR: JDBC driver not found at $DRIVER_JAR"
+        echo "Please ensure postgresql-42.7.8.jar is in the root directory"
+        exit 1
+      fi
+    # Validate that at least one parameter is provided
+    - |
+      if [ -z "$ROLLBACK_TAG" ] && [ -z "$ROLLBACK_LABEL" ]; then
+        echo "ERROR: Either ROLLBACK_TAG or ROLLBACK_LABEL must be set"
+        echo "Set ROLLBACK_TAG to rollback to a specific tag (e.g., '12345' or 'v1.0')"
+        echo "Set ROLLBACK_LABEL to filter changesets by label (e.g., 'label1,label2')"
+        echo "Both can be set to use tag rollback with label filtering"
+        exit 1
+      fi
+    # Build the rollback command with optional label filter
+    - |
+      if [ -n "$ROLLBACK_TAG" ]; then
+        echo "Rolling back to tag: $ROLLBACK_TAG"
+        ROLLBACK_CMD="rollback $ROLLBACK_TAG"
+      else
+        echo "ERROR: ROLLBACK_TAG is required for rollback operation"
+        echo "ROLLBACK_LABEL can only be used in combination with ROLLBACK_TAG for filtering"
+        exit 1
+      fi
+      
+      # Add label filter if specified
+      if [ -n "$ROLLBACK_LABEL" ]; then
+        echo "Applying label filter: $ROLLBACK_LABEL"
+        LABEL_FILTER="--label-filter=$ROLLBACK_LABEL"
+      else
+        LABEL_FILTER=""
+      fi
+      
+      # Execute rollback with or without label filter
+      liquibase \
+        --classpath="$DRIVER_JAR" \
+        --defaultsFile="$LIQUIBASE_PROPERTIES" \
+        $LABEL_FILTER \
+        $ROLLBACK_CMD
+
 
 
 
