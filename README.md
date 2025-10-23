@@ -6,6 +6,9 @@ This GitLab project is a demonstration of Liquibase running in a GitLab CI/CD pi
 
 📚 **Comprehensive Guides Available:**
 
+**Start Here:** [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) - Navigate to the right guide for your needs
+
+**Core Documentation:**
 - **[DETAILED_EXPLANATION.md](DETAILED_EXPLANATION.md)** - Complete explanation of the project, including architecture, stored procedures, and rollback mechanisms
 - **[STORED_PROCEDURES_GUIDE.md](STORED_PROCEDURES_GUIDE.md)** - Deep dive into stored procedures with detailed breakdowns and examples
 - **[ROLLBACK_GUIDE.md](ROLLBACK_GUIDE.md)** - Comprehensive guide to rollback mechanisms, strategies, and best practices
