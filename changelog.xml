@@ -1,0 +1,11 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.1.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd" changeLogId="b61fdc25-0184-4f70-8222-b35dd53d7b1f">
+    
+    <changeSet author="Tsvi" id="CREATE_PROCEDURE_CustOrderHist_v2">
+        <sqlFile path="objects/storedprocedure/CustOrderHist_v2.sql" endDelimiter="GO"/>
+        <rollback>
+            <sqlFile path="objects/storedprocedure/CustOrderHist_v1.sql" endDelimiter="GO"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

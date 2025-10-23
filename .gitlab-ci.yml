@@ -1,211 +1,155 @@
+# List of stages for jobs and their order of execution.
 stages:
+  - build
+  - test
   - deploy
-  - rollback
+  - compare
 
-variables:
-  DRIVER_JAR: "$CI_PROJECT_DIR/postgresql-42.7.8.jar"
-  LIQUIBASE_PROPERTIES: "$CI_PROJECT_DIR/liquibase.properties"
 
-before_script:
-  # Sanitize author for Liquibase changesets
-  - |
-    AUTHOR_SANITIZED=$(echo "$CI_COMMIT_AUTHOR" | sed 's/<.*>//' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | tr ' :/' '_')
-    export AUTHOR_SANITIZED
-  # Create liquibase.properties with parameters
-  - |
-    printf '%s\n' \
-      "changeLogFile: db.changelog-master.xml" \
-      "url: jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME" \
-      "username: $DB_USER" \
-      "password: $DB_PASS" \
-      "parameter.author: $AUTHOR_SANITIZED" \
-      "parameter.changesetId: $CI_COMMIT_SHA" \
-    > "$LIQUIBASE_PROPERTIES"
+# Helper functions to determine if the database is ready for deployments (lines 28-33) or rollbacks (lines 35-42) when tag is applied.
+.functions: &functions |
+  function isUpToDate(){
+    status=$(liquibase status --verbose)
+    if [[ $status == *'is up to date'* ]]; then
+      echo "database is already up to date" & exit 0
+    fi;
+  }
 
-deploy_database:
+  function isRollback(){
+    if [ -z "$TAG" ]; then
+      echo "No TAG provided, running any pending changes"
+    elif [[ "$(liquibase rollbackSQL $TAG)" ]]; then
+      liquibase --logLevel=info --logFile=${CI_JOB_NAME}_${CI_PIPELINE_ID}.log rollback $TAG && exit 0
+    else exit 0
+    fi;
+  }
+#    -----------------------------------------------------------------------------------------
+
+
+# This is a series of Liquibase commands that can be run while doing database migrations from Liquibase docs at https://docs.liquibase.com/commands/home.html
+.liquibase_job:
+  before_script:
+    - *functions
+    - isRollback
+    - isUpToDate
+    - liquibase checks run
+    - liquibase updateSQL
+    - liquibase update
+    - liquibase rollbackOneUpdate --force
+    - liquibase tag $CI_PIPELINE_ID
+    - liquibase --logFile=${CI_JOB_NAME}_${CI_PIPELINE_ID}.log --logLevel=info update
+    - liquibase history
+
+  artifacts:
+      paths:
+        - ${CI_JOB_NAME}_${CI_PIPELINE_ID}.log
+      expire_in: 1 week
+
+
+# This job runs in the build stage, which runs first.  Uncomment sections below (line 68) to extend the .liquibase_job, To use the Liquibase Docker Image (line 69) and/or have a rule to only deploy the pipeline when changes are made on the default branch (lines 75,76). 
+build-job:
+  tags:
+    - test_db
+  extends: .liquibase_job
+  image: liquibase/liquibase:latest
+  stage: build
+  environment:
+    name: DEV
+  script:
+    - echo "This job tested successfully with liquibase in DEV environment"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+
+# This job runs in the test stage. It only starts when the job in the build stage completes successfully. Uncomment sections below (line 81) to extend the .liquibase_job, To use the Liquibase Docker Image (line 82) and/or have a rule to only deploy the pipeline when changes are made on the default branch (lines 88,89). 
+test-job:
+  tags:
+    - test_db
+  extends: .liquibase_job
+  image: liquibase/liquibase:latest
+  stage: test
+  environment:
+    name: QA
+  script:
+    - echo "This job testsed successfully with liquibase in TEST environment"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+
+# This job runs in the test stage. It only starts when the job in the build stage completes successfully. Uncomment sections below (line 94) to extend the .liquibase_job, To use the Liquibase Docker Image (line 95) and/or have a rule to only deploy the pipeline when changes are made on the default branch (lines 101,102).
+deploy-prod:
+  tags:
+    - prod_db
+  extends: .liquibase_job
+  image: liquibase/liquibase:latest
   stage: deploy
-  image: liquibase/liquibase:latest
+  environment:
+    name: PROD
   script:
-    # Verify JDBC driver exists
-    - |
-      if [ ! -f "$DRIVER_JAR" ]; then
-        echo "ERROR: JDBC driver not found at $DRIVER_JAR"
-        echo "Please ensure postgresql-42.6.0.jar is in the root directory"
-        exit 1
-      fi
-    # Tag current DB state (no parameters needed for tag)
-    - |
-      liquibase \
-        --classpath="$DRIVER_JAR" \
-        --defaultsFile="$LIQUIBASE_PROPERTIES" \
-        tag "$CI_PIPELINE_ID"
-    # Apply new changes (parameters are in properties file)
-    - |
-      liquibase \
-        --classpath="$DRIVER_JAR" \
-        --defaultsFile="$LIQUIBASE_PROPERTIES" \
-        update
-  
+    - echo "This job deployed successfully Liquibase in a production environment from the $CI_COMMIT_BRANCH branch."
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
-rollback_database:
-  stage: rollback
+
+# This job compares dev database with test database to detect any drifts in the pipeline. Learn more about comparing database with Liquibase here https://docs.liquibase.com/commands/diff.html
+# Uncomment sections below to use the Liquibase Docker Image (line 108), run the diff command (lines 114,115) and/or have a rule to only deploy the pipeline when changes are made on the default branch (lines 116,117).
+DEV->TEST:
+  tags:
+    - test_db
   image: liquibase/liquibase:latest
-  when: manual
+  stage: compare
+  environment:
+    name: QA
   script:
-    # Verify JDBC driver exists
-    - |
-      if [ ! -f "$DRIVER_JAR" ]; then
-        echo "ERROR: JDBC driver not found at $DRIVER_JAR"
-        echo "Please ensure postgresql-42.6.0.jar is in the root directory"
-        exit 1
-      fi
-    # Rollback to pipeline tag (parameters are in properties file)
-    - |
-      liquibase \
-        --classpath="$DRIVER_JAR" \
-        --defaultsFile="$LIQUIBASE_PROPERTIES" \
-        rollback "$CI_PIPELINE_ID"
+    - echo "Comparing databases DEV --> TEST"
+    - liquibase diff
+    - liquibase --outputFile=diff_between_DEV_TEST.json diff --format=json
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  artifacts:
+    paths:
+      - diff_between_DEV_TEST.json
+    expire_in: 1 week
 
 
+# This job compares test database with prod database to detect any drifts in the pipeline.
+# Uncomment sections below to use the Liquibase Docker Image (line 127), run the diff command (lines 133,134) and/or have a rule to only deploy the pipeline when changes are made on the default branch (lines 135,136).
+TEST->PROD:
+  tags:
+    - prod_db
+  image: liquibase/liquibase:latest
+  stage: compare
+  environment:
+    name: PROD
+  script:
+    - echo "Comparing databases TEST --> PROD"
+    - liquibase diff
+    - liquibase --outputFile=diff_between_TEST_PROD.json diff --format=json
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+  artifacts:
+    paths:
+      - diff_between_TEST_PROD.json
+    expire_in: 1 week
 
 
+# This job creates a snapshot of prod database.  You can use the snapshot file to run comparisons with the production database to investigate for any potential issues. https://www.liquibase.com/devsecops
+# Uncomment sections below to use the Liquibase Docker Image (line 147), run the snapshot command (line 153) and/or have a rule to only deploy the pipeline when changes are made on the default branch (lines 154,155).
+snapshot PROD:
+  tags:
+    - prod_db
+  image: liquibase/liquibase:latest
+  stage: .post
+  environment:
+    name: PROD
+  script:
+    - echo "Snapshotting database PROD"
+    - liquibase --outputFile=snapshot_PROD_${CI_PIPELINE_ID}.json snapshot --snapshotFormat=json --log-level debug
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# stages:
-#   - deploy
-#   - rollback
-
-# variables:
-#   POSTGRES_JDBC_VERSION: "42.6.0"
-#   DRIVER_JAR: "$CI_PROJECT_DIR/postgresql-${POSTGRES_JDBC_VERSION}.jar"
-#   LIQUIBASE_PROPERTIES: "$CI_PROJECT_DIR/liquibase.properties"
-
-# before_script:
-#   # Download JDBC driver if not exists
-#   - |
-#     if [ ! -f "$DRIVER_JAR" ]; then
-#       echo "Downloading Postgres JDBC driver $POSTGRES_JDBC_VERSION..."
-#       if command -v curl >/dev/null 2>&1; then
-#         curl -L -o "$DRIVER_JAR" "https://repo1.maven.org/maven2/org/postgresql/postgresql/${POSTGRES_JDBC_VERSION}/postgresql-${POSTGRES_JDBC_VERSION}.jar"
-#       else
-#         wget -O "$DRIVER_JAR" "https://repo1.maven.org/maven2/org/postgresql/postgresql/${POSTGRES_JDBC_VERSION}/postgresql-${POSTGRES_JDBC_VERSION}.jar"
-#       fi
-#     fi
-#   # Sanitize author for Liquibase changesets
-#   - |
-#     AUTHOR_SANITIZED=$(echo "$CI_COMMIT_AUTHOR" | sed 's/<.*>//' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | tr ' :/' '_')
-#     export AUTHOR_SANITIZED
-#   # Create liquibase.properties
-#   - |
-#     printf '%s\n' \
-#       "changeLogFile: db.changelog-master.xml" \
-#       "url: jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME" \
-#       "username: $DB_USER" \
-#       "password: $DB_PASS" \
-#     > "$LIQUIBASE_PROPERTIES"
-
-# deploy_database:
-#   stage: deploy
-#   image: liquibase/liquibase:latest
-#   script:
-#     # Tag current DB state
-#     - |
-#       liquibase \
-#         --classpath="$DRIVER_JAR" \
-#         --defaultsFile="$LIQUIBASE_PROPERTIES" \
-#         -Dauthor="$AUTHOR_SANITIZED" \
-#         -DchangesetId="$CI_COMMIT_SHA" \
-#         tag "$CI_PIPELINE_ID"
-#     # Apply new changes
-#     - |
-#       liquibase \
-#         --classpath="$DRIVER_JAR" \
-#         --defaultsFile="$LIQUIBASE_PROPERTIES" \
-#         -Dauthor="$AUTHOR_SANITIZED" \
-#         -DchangesetId="$CI_COMMIT_SHA" \
-#         update
-
-# rollback_database:
-#   stage: rollback
-#   image: liquibase/liquibase:latest
-#   when: manual
-#   script:
-#     # Rollback to pipeline tag
-#     - |
-#       liquibase \
-#         --classpath="$DRIVER_JAR" \
-#         --defaultsFile="$LIQUIBASE_PROPERTIES" \
-#         -Dauthor="$AUTHOR_SANITIZED" \
-#         -DchangesetId="$CI_COMMIT_SHA" \
-#         rollback "$CI_PIPELINE_ID"
-
-
-
-
-
-
-
-# stages:
-#   - deploy
-#   - rollback
-
-# # ---------------- Deploy Database ----------------
-# deploy_database:
-#   stage: deploy
-#   image: liquibase/liquibase:latest
-#   script:
-#     # Tag current DB state using pipeline ID
-#     - liquibase tag "$CI_PIPELINE_ID" \
-#         --changeLogFile=db.changelog-master.xml \
-#         --url=jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME \
-#         --username=$DB_USER \
-#         --password=$DB_PASS
-
-#     # Run update with dynamic author/changeset ID
-#     - liquibase update \
-#         --changeLogFile=db.changelog-master.xml \
-#         --url=jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME \
-#         --username=$DB_USER \
-#         --password=$DB_PASS \
-#         --property=author="$CI_COMMIT_AUTHOR" \
-#         --property=changesetId="$CI_COMMIT_SHA"
-
-# # ---------------- Rollback Database ----------------
-# rollback_database:
-#   stage: rollback
-#   image: liquibase/liquibase:latest
-#   when: manual   # Manual trigger in GitLab UI
-#   script:
-#     # Rollback to the tagged state of this pipeline
-#     - liquibase rollback "$CI_PIPELINE_ID" \
-#         --changeLogFile=db.changelog-master.xml \
-#         --url=jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME \
-#         --username=$DB_USER \
-#         --password=$DB_PASS
+  artifacts:
+    paths:
+      - snapshot_PROD_${CI_PIPELINE_ID}.json
+    expire_in: 1 week
