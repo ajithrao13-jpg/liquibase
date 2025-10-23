@@ -2,6 +2,26 @@
 
 This GitLab project is a demonstration of Liquibase running in a GitLab CI/CD pipline against a SQL Server Database.
 
+## Documentation
+
+📚 **Comprehensive Guides Available:**
+
+**Start Here:** [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) - Navigate to the right guide for your needs
+
+**Core Documentation:**
+- **[DETAILED_EXPLANATION.md](DETAILED_EXPLANATION.md)** - Complete explanation of the project, including architecture, stored procedures, and rollback mechanisms
+- **[STORED_PROCEDURES_GUIDE.md](STORED_PROCEDURES_GUIDE.md)** - Deep dive into stored procedures with detailed breakdowns and examples
+- **[ROLLBACK_GUIDE.md](ROLLBACK_GUIDE.md)** - Comprehensive guide to rollback mechanisms, strategies, and best practices
+- **[VISUAL_GUIDE.md](VISUAL_GUIDE.md)** - Visual flow diagrams and ASCII art showing how everything works
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick reference for commands, syntax, and common patterns
+
+These guides explain:
+- ✅ How the current branch code works in detail
+- ✅ Stored procedures and their functionality
+- ✅ Rollback mechanisms and how they work
+- ✅ CI/CD pipeline flow
+- ✅ Best practices and troubleshooting
+
 ## Getting started
 
 Please follow this [GitLab Blog Post](https://about.gitlab.com/blog/2022/01/05/how-to-bring-devops-to-the-database-with-gitlab-and-liquibase/) to get started.
