@@ -1,0 +1,84 @@
+--liquibase formatted sql
+
+--changeset ajith:create-person-table labels:tbl:person context:context1
+--comment: Create person table if not exists
+create table if not exists person (
+    id int primary key not null,
+    name varchar(50) not null,
+    address1 varchar(50),
+    address2 varchar(50),
+    city varchar(30)
+);
+--rollback DROP TABLE IF EXISTS person;
+
+--changeset ajith:$alter-columnname-name labels:tbl:person context:context1
+--comment: Rename column 'name' to 'full_name' on person
+ALTER TABLE person RENAME COLUMN name TO full_name;
+--rollback ALTER TABLE person RENAME COLUMN full_name TO name;
+
+
+
+
+
+
+--liquibase formatted sql
+
+--changeset ajith:customer-create labels:tbl:customer
+CREATE TABLE IF NOT EXISTS public.customer(
+  id INT PRIMARY KEY,
+  customer_name VARCHAR(50)
+);
+--rollback DROP TABLE IF EXISTS public.customer;
+
+
+
+
+
+
+
+--liquibase formatted sql
+
+--changeset ajith:create_get_person_by_id_procedure(2) labels:sps runOnChange:true endDelimiter://
+--comment: Creates a stored procedure to get a person by ID
+
+CREATE OR REPLACE PROCEDURE v1_get_person_by_id(
+   IN person_id INT, 
+   OUT person_name VARCHAR, 
+   OUT person_city VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+   SELECT name
+   INTO person_name
+   FROM person
+   WHERE id = person_id;
+END;
+$$;
+//
+--rollback DROP PROCEDURE IF EXISTS get_person_by_id(int, varchar, varchar);
+
+
+
+
+
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+      http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <include file="tables/person.sql" relativeToChangelogFile="true"/>
+    <include file="tables/customer.sql" relativeToChangelogFile="true"/>
+    <include file="stored_procedures/v1_get_person_by_id.sql" relativeToChangelogFile="true"/>
+    <!-- <include file="views/person_city_view.sql" relativeToChangelogFile="true"/> -->
+    <!-- <include file="stored_procedures/usp_say_hello.sql" relativeToChangelogFile="true"/>
+    <include file="stored_procedures/usp_get_server_time.sql" relativeToChangelogFile="true"/> -->
+
+
+</databaseChangeLog>
