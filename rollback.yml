@@ -1,6 +1,38 @@
 stages:
   - rollback
 
+variables:
+  RB_TAG:
+    value: ""
+    options: 
+      - ""
+      - "staging"
+      - "canary"
+      - "production"
+    description: "The deployment target. Change this variable to 'canary' or 'production' if needed."
+
+  RB_LABEL:
+    value: ""
+    options: 
+      - ""
+      - "staging"
+      - "canary"
+      - "production"
+    description: "The deployment target. Change this variable to 'canary' or 'production' if needed."
+
+  RB_CMD:
+    value: ""
+    options: 
+      - ""
+      - "staging"
+      - "canary"
+      - "production"
+    description: "The deployment target. Change this variable to 'canary' or 'production' if needed."
+
+
+  
+
+
 liquibase_custom_rollback:
   stage: rollback
   image: liquibase/liquibase:5.0.1
