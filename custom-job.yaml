@@ -1,0 +1,42 @@
+stages:
+  - rollback
+
+variables:
+  RB_TAG:
+    value: ""
+    description: "The deployment target. Change this variable to 'canary' or 'production' if needed."
+
+  RB_LABEL:
+    value: ""
+    description: "The deployment target. Change this variable to 'canary' or 'production' if needed."
+
+  RB_CMD:
+    value: ""
+    description: "The deployment target. Change this variable to 'canary' or 'production' if needed."
+
+liquibase_custom_rollback:
+  stage: rollback
+  image: liquibase/liquibase:5.0.1
+  when: manual
+  script:
+    - |
+      set -euo pipefail
+
+      # If RB_CMD provided, run it literally (useful for custom rollbackCount/rollbackToDate/rollbackSQL)
+      if [ -n "${RB_CMD:-}" ]; then
+        echo "Executing provided Liquibase command: liquibase $RB_CMD"
+        # Recommended: require user to include any connection flags or defaultsFile in RB_CMD or set CI vars
+        liquibase $RB_CMD
+        exit $?
+      fi
+
+      # If RB_TAG and RB_LABEL provided, run the canonical rollback command
+      if [ -n "${RB_TAG:-}" ] && [ -n "${RB_LABEL:-}" ]; then
+        echo "Executing Liquibase rollback to tag '$RB_TAG' with label filter '$RB_LABEL'"
+        liquibase rollback --tag="$RB_TAG" --labelFilter="$RB_LABEL"
+        exit $?
+      fi
+
+      # Fallback (should not happen because rules prevent job from appearing otherwise)
+      echo "No RB_CMD, RB_TAG or RB_LABEL provided. Nothing to do."
+      exit 0
