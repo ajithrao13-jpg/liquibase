@@ -2,17 +2,18 @@ stages:
   - rollback
 
 variables:
+variables:
   RB_TAG:
     value: ""
-    description: "The deployment target. Change this variable to 'canary' or 'production' if needed."
+    description: "Liquibase rollback target tag. Specify the database tag you want to roll back to (e.g., 'v1.0.0')."
 
   RB_LABEL:
     value: ""
-    description: "The deployment target. Change this variable to 'canary' or 'production' if needed."
+    description: "Liquibase label filter for rollback. Specify the label to filter changesets during rollback (e.g., 'production')."
 
   RB_CMD:
     value: ""
-    description: "The deployment target. Change this variable to 'canary' or 'production' if needed."
+    description: "Custom Liquibase rollback command. Optionally provide a full Liquibase rollback command (e.g., 'rollbackCount 2', 'rollbackToDate 2023-01-01'). Overrides RB_TAG and RB_LABEL."
 
 liquibase_custom_rollback:
   stage: rollback
