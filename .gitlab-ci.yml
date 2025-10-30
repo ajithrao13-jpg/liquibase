@@ -199,7 +199,7 @@ rollback_database:
 #   - rollback
 
 # variables:
-#   POSTGRES_JDBC_VERSION: "42.6.0"
+#   POSTGRES_JDBC_VERSION: "42.7.8"
 #   DRIVER_JAR: "$CI_PROJECT_DIR/postgresql-${POSTGRES_JDBC_VERSION}.jar"
 #   LIQUIBASE_PROPERTIES: "$CI_PROJECT_DIR/liquibase.properties"
 
