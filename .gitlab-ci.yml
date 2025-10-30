@@ -119,7 +119,7 @@ deploy_database:
     - |
       if [ ! -f "$DRIVER_JAR" ]; then
         echo "ERROR: JDBC driver not found at $DRIVER_JAR"
-        echo "Please ensure postgresql-42.6.0.jar is in the root directory"
+        echo "Please ensure postgresql-42.7.8.jar is in the root directory"
         exit 1
       fi
     # Tag current DB state (no parameters needed for tag)
@@ -151,7 +151,7 @@ rollback_database:
     - |
       if [ ! -f "$DRIVER_JAR" ]; then
         echo "ERROR: JDBC driver not found at $DRIVER_JAR"
-        echo "Please ensure postgresql-42.6.0.jar is in the root directory"
+        echo "Please ensure postgresql-42.7.8.jar is in the root directory"
         exit 1
       fi
     # Rollback to pipeline tag (parameters are in properties file)
