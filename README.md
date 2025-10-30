@@ -4,17 +4,18 @@ This repository contains database change management scripts using Liquibase for 
 
 ## 📚 Documentation
 
+- **[Quick Start Guide](QUICK_START.md)** - Get started in 5 minutes
 - **[Developer Workflow Guide](DEVELOPER_WORKFLOW.md)** - Complete guide for developers working with Liquibase
+- **[Workflow Diagram](WORKFLOW_DIAGRAM.md)** - Visual workflow diagram
 - **[Architecture Documentation](architecture.md)** - System architecture and pipeline design
 
 ## 🚀 Quick Start
 
 ### For New Developers
 
-1. **Read the Developer Workflow Guide** - Start with [DEVELOPER_WORKFLOW.md](DEVELOPER_WORKFLOW.md) for detailed instructions
-2. **Clone the repository** and checkout the `develop` branch
-3. **Create your feature branch** from `develop`
-4. **Follow the workflow** outlined in the guide
+1. **5-Minute Quick Start** - See [QUICK_START.md](QUICK_START.md) for rapid onboarding
+2. **Detailed Guide** - Read [DEVELOPER_WORKFLOW.md](DEVELOPER_WORKFLOW.md) for comprehensive instructions
+3. **Visual Workflow** - Check [WORKFLOW_DIAGRAM.md](WORKFLOW_DIAGRAM.md) to understand the process flow
 
 ### Creating Database Changes
 
@@ -84,9 +85,11 @@ liquibase/
 
 ## 📖 Key Resources
 
-- [Liquibase Documentation](https://docs.liquibase.com/)
-- [Developer Workflow Guide](DEVELOPER_WORKFLOW.md) - **Start here!**
-- [Architecture Guide](architecture.md)
+- [Quick Start Guide](QUICK_START.md) - **Start here for fast onboarding!**
+- [Developer Workflow Guide](DEVELOPER_WORKFLOW.md) - Complete workflow documentation
+- [Workflow Diagram](WORKFLOW_DIAGRAM.md) - Visual process flow
+- [Architecture Guide](architecture.md) - System architecture
+- [Liquibase Documentation](https://docs.liquibase.com/) - Official Liquibase docs
 
 ## 🤝 Contributing
 
