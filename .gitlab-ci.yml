@@ -139,7 +139,7 @@ deploy_database:
 # ============================================================================
 # ROLLBACK STAGE - Manual trigger only
 # ============================================================================
-  
+
 rollback_database:
   stage: rollback
   image: liquibase/liquibase:latest
