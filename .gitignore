@@ -1,0 +1,28 @@
+# Liquibase files
+liquibase.properties
+*.lock
+
+# Temporary files
+/tmp/
+*.tmp
+*.temp
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build artifacts
+target/
+build/
+dist/

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Include all view SQL files here -->
+    <include file="objects/views/employee_summary_view.sql" relativeToChangelogFile="true"/>
+    
+    <!-- Add more view files below as you create them -->
+    <!-- Example: -->
+    <!-- <include file="objects/views/department_summary_view.sql" relativeToChangelogFile="true"/> -->
+
+</databaseChangeLog>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Include all table SQL files here -->
+    <include file="objects/tables/create_employee_table.sql" relativeToChangelogFile="true"/>
+    
+    <!-- Add more table files below as you create them -->
+    <!-- Example: -->
+    <!-- <include file="objects/tables/create_department_table.sql" relativeToChangelogFile="true"/> -->
+
+</databaseChangeLog>

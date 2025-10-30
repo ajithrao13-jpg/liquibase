@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Master changelog file for all database objects -->
+    <!-- Include child XML files in the order of execution -->
+    
+    <!-- 1. Tables - Create tables first -->
+    <include file="objects/tables.xml" relativeToChangelogFile="true"/>
+    
+    <!-- 2. Views - Create views after tables -->
+    <include file="objects/views.xml" relativeToChangelogFile="true"/>
+    
+    <!-- 3. Stored Procedures - Create stored procedures last -->
+    <include file="objects/sp.xml" relativeToChangelogFile="true"/>
+
+</databaseChangeLog>

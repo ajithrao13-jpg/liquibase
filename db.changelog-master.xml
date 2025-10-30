@@ -5,12 +5,12 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-
-
+    <!-- Legacy changelogs (keeping for backward compatibility) -->
     <include file="changelogs/tables.sql" relativeToChangelogFile="true"/>
     <include file="changelogs/views.sql" relativeToChangelogFile="true"/>
     <include file="changelogs/procedures.sql" relativeToChangelogFile="true"/>
 
-
+    <!-- New structured changelogs (recommended approach) -->
+    <include file="master_objects.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
